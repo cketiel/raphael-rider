@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import i18n from "../i18n";
 
 interface SettingsState {
   language: "es" | "en";
@@ -14,7 +15,10 @@ export const useSettingsStore = create<SettingsState>()(
     (set) => ({
       language: "es",
       preferredMapApp: "google",
-      setLanguage: (language) => set({ language }),
+      setLanguage: (lang) => {
+        i18n.changeLanguage(lang); // Sincroniza con el motor i18n
+        set({ language: lang });
+      },
       setPreferredMapApp: (preferredMapApp) => set({ preferredMapApp }),
     }),
     {

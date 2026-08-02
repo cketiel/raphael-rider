@@ -17,8 +17,10 @@ import {
   Trash2,
 } from "lucide-react-native";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 export const NotificationsScreen = () => {
+  const { t } = useTranslation();
   const { notifications, markAsRead, clearAll } = useNotificationStore();
 
   const getLevelStyles = (level: NotificationLevel) => {
@@ -64,7 +66,7 @@ export const NotificationsScreen = () => {
     <View style={styles.container}>
       <View style={styles.topActions}>
         <Text style={styles.countText}>
-          {notifications.length} notificaciones
+          {notifications.length} {t("notifs.title")}
         </Text>
         <TouchableOpacity onPress={clearAll}>
           <Trash2 size={18} color="#94a3b8" />
@@ -79,7 +81,7 @@ export const NotificationsScreen = () => {
         ListEmptyComponent={
           <View style={styles.empty}>
             <CheckCircle size={48} color="#cbd5e1" />
-            <Text style={styles.emptyText}>No tienes avisos pendientes</Text>
+            <Text style={styles.emptyText}>{t("notifs.empty")}</Text>
           </View>
         }
       />

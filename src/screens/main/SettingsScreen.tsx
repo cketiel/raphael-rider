@@ -23,8 +23,10 @@ import {
   Lock,
 } from "lucide-react-native";
 import i18n from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 export const SettingsScreen = () => {
+  const { t } = useTranslation();
   const { customer, logout } = useAuthStore();
   const { language, setLanguage, preferredMapApp, setPreferredMapApp } =
     useSettingsStore();
@@ -85,20 +87,20 @@ export const SettingsScreen = () => {
           <Text style={styles.avatarText}>{customer?.fullName.charAt(0)}</Text>
         </View>
         <Text style={styles.userName}>{customer?.fullName}</Text>
-        <Text style={styles.userStatus}>Conectado como Paciente</Text>
+        <Text style={styles.userStatus}>{t("settings.profile")}</Text>
       </View>
 
       {/* Sección Cuenta */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Cuenta</Text>
+        <Text style={styles.sectionTitle}>{t("settings.account")}</Text>
         <SettingItem
           icon={User}
-          label="Datos del Paciente"
+          label={t("settings.patient_details")}
           onPress={() => setPinModalVisible(true)}
         />
         <SettingItem
           icon={Globe}
-          label="Idioma"
+          label={t("settings.language")}
           value={language === "es" ? "Español" : "English"}
           onPress={toggleLanguage}
         />
@@ -106,10 +108,10 @@ export const SettingsScreen = () => {
 
       {/* Sección Navegación */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Preferencias</Text>
+        <Text style={styles.sectionTitle}>{t("settings.preferences")}</Text>
         <SettingItem
           icon={Map}
-          label="Mapa Preferido"
+          label={t("settings.map")}
           value={preferredMapApp.toUpperCase()}
           onPress={() => {
             Alert.alert("Seleccionar Mapa", "Elija su app preferida", [
@@ -132,19 +134,19 @@ export const SettingsScreen = () => {
         <Text style={styles.sectionTitle}>Raphael NEMT</Text>
         <SettingItem
           icon={Shield}
-          label="Información Legal"
+          label={t("settings.legal")}
           onPress={() => {}}
         />
         <SettingItem
           icon={Shield}
-          label="Política de Privacidad"
+          label={t("settings.privacy")}
           onPress={() => {}}
         />
       </View>
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <LogOut size={20} color={RaphaelTheme.colors.error} />
-        <Text style={styles.logoutText}>Cerrar Sesión</Text>
+        <Text style={styles.logoutText}>{t("settings.logout")}</Text>
       </TouchableOpacity>
 
       {/* Modal de PIN */}
@@ -156,10 +158,10 @@ export const SettingsScreen = () => {
               color={RaphaelTheme.colors.primary}
               style={{ marginBottom: 15 }}
             />
-            <Text style={styles.modalTitle}>Seguridad</Text>
-            <Text style={styles.modalSub}>
-              Ingrese su PIN para editar sus datos
+            <Text style={styles.modalTitle}>
+              {t("settings.security_title")}
             </Text>
+            <Text style={styles.modalSub}>{t("settings.security_msg")}</Text>
             <TextInput
               style={styles.pinInput}
               placeholder="****"

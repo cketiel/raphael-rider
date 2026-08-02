@@ -16,8 +16,10 @@ import {
   MapPin,
   ShieldCheck,
 } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 export const HomeScreen = () => {
+  const { t } = useTranslation();
   const customer = useAuthStore((state) => state.customer);
 
   const handleSolicitarViaje = () => {
@@ -50,14 +52,16 @@ export const HomeScreen = () => {
       <View style={styles.statusHeader}>
         <View style={styles.statusBadge}>
           <ShieldCheck color={RaphaelTheme.colors.success} size={16} />
-          <Text style={styles.statusText}>Paciente Identificado</Text>
+          <Text style={styles.statusText}>{t("home.status_connected")}</Text>
         </View>
-        <Text style={styles.welcomeText}>Hola, {customer?.fullName}</Text>
+        <Text style={styles.welcomeText}>
+          {t("home.welcome_user", { name: customer?.fullName })}
+        </Text>
       </View>
 
       {/* 2. Acciones Principales */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
+        <Text style={styles.sectionTitle}>{t("home.quick_actions")}</Text>
         <View style={styles.actionGrid}>
           <TouchableOpacity
             style={styles.actionButton}
@@ -68,7 +72,7 @@ export const HomeScreen = () => {
             >
               <PlusCircle color={RaphaelTheme.colors.primary} size={28} />
             </View>
-            <Text style={styles.actionLabel}>Solicitar Viaje</Text>
+            <Text style={styles.actionLabel}>{t("home.request_trip")}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -80,14 +84,16 @@ export const HomeScreen = () => {
             >
               <BellRing color="#D97706" size={28} />
             </View>
-            <Text style={styles.actionLabel}>Activar Will Call</Text>
+            <Text style={styles.actionLabel}>
+              {t("home.activate_will_call")}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* 3. Información del Paciente */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Mis Datos</Text>
+        <Text style={styles.sectionTitle}>{t("home.my_data")}</Text>
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <User size={20} color="#64748b" />

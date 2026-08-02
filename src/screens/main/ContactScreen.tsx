@@ -18,8 +18,10 @@ import {
 } from "lucide-react-native";
 import { RaphaelTheme } from "../../constants/Theme";
 import { RAPHAEL_CONTACT } from "../../constants/Config";
+import { useTranslation } from "react-i18next";
 
 export const ContactScreen = () => {
+  const { t } = useTranslation();
   const handleCall = () => {
     Linking.openURL(`tel:${RAPHAEL_CONTACT.phone}`);
   };
@@ -54,45 +56,43 @@ export const ContactScreen = () => {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <ShieldCheck size={60} color={RaphaelTheme.colors.primary} />
-        <Text style={styles.title}>Centro de Ayuda</Text>
-        <Text style={styles.subtitle}>
-          Estamos aquí para guiarte y cuidarte en cada trayecto.
-        </Text>
+        <Text style={styles.title}>{t("contact.title")}</Text>
+        <Text style={styles.subtitle}>{t("contact.subtitle")}</Text>
       </View>
 
       <View style={styles.infoRow}>
         <Clock size={16} color="#64748b" />
         <Text style={styles.infoText}>
-          Atención disponible: {RAPHAEL_CONTACT.officeHours}
+          {t("contact.hours", { hours: RAPHAEL_CONTACT.officeHours })}:
         </Text>
       </View>
 
       <View style={styles.grid}>
         <ContactCard
           icon={Phone}
-          title="Llamar a la oficina"
+          title={t("contact.call")}
           value={RAPHAEL_CONTACT.displayPhone}
           color={RaphaelTheme.colors.primary}
           onPress={handleCall}
         />
         <ContactCard
           icon={MessageSquare}
-          title="Enviar SMS"
-          value="Mensaje de texto"
+          title={t("contact.sms")}
+          value={RAPHAEL_CONTACT.sms}
           color="#8B5CF6"
           onPress={handleSMS}
         />
         <ContactCard
           icon={Mail}
-          title="Correo Electrónico"
+          title={t("contact.email")}
           value={RAPHAEL_CONTACT.email}
           color="#EC4899"
           onPress={handleEmail}
         />
         <ContactCard
           icon={Globe}
-          title="Página Web"
-          value="Visitar sitio oficial"
+          title={t("contact.web")}
+          value={RAPHAEL_CONTACT.website}
           color={RaphaelTheme.colors.secondary}
           onPress={handleWeb}
         />

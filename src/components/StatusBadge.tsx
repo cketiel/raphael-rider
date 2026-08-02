@@ -1,8 +1,10 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { TripStatusColors } from "../domain/types";
+import { useTranslation } from "react-i18next";
 
 export const StatusBadge = ({ status }: { status: string }) => {
+  const { t } = useTranslation();
   const backgroundColor = TripStatusColors[status] || "#CBD5E1";
   // Lógica para texto oscuro en fondos amarillos
   const textColor = status === "Waiting" ? "#451a03" : "#FFFFFF";
@@ -10,7 +12,7 @@ export const StatusBadge = ({ status }: { status: string }) => {
   return (
     <View style={[styles.badge, { backgroundColor }]}>
       <Text style={[styles.text, { color: textColor }]}>
-        {status.toUpperCase()}
+        {t(`status.${status}`)}
       </Text>
     </View>
   );

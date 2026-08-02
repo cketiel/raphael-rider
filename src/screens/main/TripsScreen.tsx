@@ -29,7 +29,10 @@ import { useRatingStore } from "../../store/useRatingStore";
 import { RootStackParamList } from "../../navigation/types";
 import { RatingModal } from "../../components/RatingModal";
 
+import { useTranslation } from "react-i18next";
+
 export const TripsScreen = () => {
+  const { t } = useTranslation();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { ratings, addRating } = useRatingStore();
@@ -59,7 +62,7 @@ export const TripsScreen = () => {
       onPress={() => tripId && navigation.navigate("TrackingMap", { tripId })}
     >
       <MapIcon color={RaphaelTheme.colors.primary} size={16} />
-      <Text style={styles.mapButtonText}>Seguimiento</Text>
+      <Text style={styles.mapButtonText}>{t("common.track")}</Text>
     </TouchableOpacity>
   );
 
@@ -130,7 +133,7 @@ export const TripsScreen = () => {
                 fill={RaphaelTheme.colors.secondary}
               />
               <Text style={styles.ratingText}>
-                Tu puntuación: {rating.score}/10
+                {t("trips.score")}: {rating.score}/10
               </Text>
             </View>
           ) : (
@@ -171,7 +174,7 @@ export const TripsScreen = () => {
               viewMode === "daily" && styles.activeTabLabel,
             ]}
           >
-            Diario
+            {t("trips.daily")}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -184,7 +187,7 @@ export const TripsScreen = () => {
               viewMode === "range" && styles.activeTabLabel,
             ]}
           >
-            Historial
+            {t("trips.history")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -198,7 +201,7 @@ export const TripsScreen = () => {
           >
             <Calendar size={18} color={RaphaelTheme.colors.primary} />
             <Text style={styles.filterButtonText}>
-              Fecha: {format(singleDate, "PP")}
+              {t("trips.date")}: {format(singleDate, "PP")}
             </Text>
           </TouchableOpacity>
         ) : (
@@ -207,7 +210,7 @@ export const TripsScreen = () => {
               style={styles.filterButtonHalf}
               onPress={() => setShowPicker("from")}
             >
-              <Text style={styles.filterLabel}>Desde:</Text>
+              <Text style={styles.filterLabel}>{t("trips.since")}:</Text>
               <Text style={styles.filterValue}>
                 {format(dateFrom, "dd/MM/yy")}
               </Text>
@@ -216,7 +219,7 @@ export const TripsScreen = () => {
               style={styles.filterButtonHalf}
               onPress={() => setShowPicker("to")}
             >
-              <Text style={styles.filterLabel}>Hasta:</Text>
+              <Text style={styles.filterLabel}>{t("trips.until")}:</Text>
               <Text style={styles.filterValue}>
                 {format(dateTo, "dd/MM/yy")}
               </Text>
