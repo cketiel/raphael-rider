@@ -48,7 +48,7 @@ export const SettingsScreen = () => {
   const toggleLanguage = () => {
     const newLang = language === "es" ? "en" : "es";
     setLanguage(newLang);
-    i18n.changeLanguage(newLang);
+    //i18n.changeLanguage(newLang);
   };
 
   const handleLogout = () => {

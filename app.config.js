@@ -17,11 +17,7 @@ export default {
       supportsTablet: true,
       bundleIdentifier: "com.raphael.rider",
     },
-    android: {
-      adaptiveIcon: {
-        foregroundImage: "./assets/adaptive-icon.png",
-        backgroundColor: "#ffffff",
-      },
+    android: {     
       package: "com.raphael.rider",
       config: {
         googleMaps: {

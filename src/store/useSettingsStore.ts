@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import i18n from "../i18n";
+import i18n from "../i18n"; // Importamos i18n directamente
 
 interface SettingsState {
   language: "es" | "en";
@@ -13,17 +13,25 @@ interface SettingsState {
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
-      language: "es",
+      language: "en",
       preferredMapApp: "google",
       setLanguage: (lang) => {
-        i18n.changeLanguage(lang); // Sincroniza con el motor i18n
+        i18n.changeLanguage(lang);
         set({ language: lang });
       },
-      setPreferredMapApp: (preferredMapApp) => set({ preferredMapApp }),
+      setPreferredMapApp: (app) => set({ preferredMapApp: app }),
     }),
     {
       name: "raphael-settings-storage",
       storage: createJSONStorage(() => AsyncStorage),
+
+      onRehydrateStorage: (state) => {
+        return (state, error) => {
+          if (!error && state) {
+            i18n.changeLanguage(state.language);
+          }
+        };
+      },
     },
   ),
 );
