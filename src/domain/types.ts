@@ -1,4 +1,18 @@
-// src/domain/types.ts
+export enum NotificationLevel {
+  Info = "Info",
+  Warning = "Warning",
+  Alert = "Alert",
+}
+
+export interface RaphaelNotification {
+  id: string;
+  title: string;
+  message: string;
+  date: string;
+  level: NotificationLevel;
+  read: boolean;
+  tripId?: number; // Para navegar al mapa si es una alerta de viaje en curso
+}
 
 export enum TripType {
   Appointment = "Appointment",
