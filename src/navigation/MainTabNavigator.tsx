@@ -1,11 +1,18 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Home, Calendar, Bell, Settings } from "lucide-react-native";
+import {
+  Home,
+  Calendar,
+  Headphones,
+  Bell,
+  Settings,
+} from "lucide-react-native";
 import { RaphaelTheme } from "../constants/Theme";
 
 // Screens
 import { HomeScreen } from "../screens/main/HomeScreen";
 import { TripsScreen } from "../screens/main/TripsScreen";
+import { ContactScreen } from "../screens/main/ContactScreen";
 import { NotificationsScreen } from "../screens/main/NotificationsScreen";
 import { SettingsScreen } from "../screens/main/SettingsScreen";
 
@@ -38,6 +45,15 @@ export const MainTabNavigator = () => {
         options={{
           tabBarIcon: ({ color, size }) => (
             <Calendar color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Contacto"
+        component={ContactScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Headphones color={color} size={size} />
           ),
         }}
       />
