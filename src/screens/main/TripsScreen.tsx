@@ -18,8 +18,14 @@ import {
   Clock,
 } from "lucide-react-native";
 
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../navigation/types";
+
 export const TripsScreen = () => {
   const [viewMode, setViewMode] = useState<"daily" | "range">("daily");
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const getScheduleStatus = (item: Schedule) => {
     if (item.performed)
@@ -58,7 +64,12 @@ export const TripsScreen = () => {
         <Text style={styles.eventAddress}>{item.address}</Text>
 
         {!item.performed && item.tripId && (
-          <TouchableOpacity style={styles.miniMapButton}>
+          <TouchableOpacity
+            style={styles.miniMapButton}
+            onPress={() =>
+              navigation.navigate("TrackingMap", { tripId: item.tripId! })
+            }
+          >
             <MapIcon color={RaphaelTheme.colors.primary} size={14} />
             <Text style={styles.miniMapText}>Seguimiento</Text>
           </TouchableOpacity>

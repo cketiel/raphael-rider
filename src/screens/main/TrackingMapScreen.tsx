@@ -101,9 +101,8 @@ export const TrackingMapScreen = ({ route }: any) => {
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFill,
-    justifyContent: "flex-end",
-    alignItems: "center",
+    flex: 1, // Crucial: el padre debe expandirse
+    backgroundColor: "white",
   },
   map: { ...StyleSheet.absoluteFill },
   carMarker: {

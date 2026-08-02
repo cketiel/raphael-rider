@@ -6,7 +6,10 @@ import { useAuthStore } from "../store/useAuthStore";
 import { LoginScreen } from "../screens/auth/LoginScreen";
 import { MainTabNavigator } from "./MainTabNavigator";
 
-const Stack = createNativeStackNavigator();
+import { RootStackParamList } from "./types";
+import { TrackingMapScreen } from "../screens/main/TrackingMapScreen";
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigator = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -15,11 +18,21 @@ export const RootNavigator = () => {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!isAuthenticated ? (
-          // Authentication Stack
-          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Login" component={LoginScreen as any} />
         ) : (
-          // Main App Stack
-          <Stack.Screen name="Main" component={MainTabNavigator} />
+          <>
+            <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+
+            <Stack.Screen
+              name="TrackingMap"
+              component={TrackingMapScreen}
+              options={{
+                headerShown: true,
+                headerTitle: "Seguimiento en Vivo",
+                headerTintColor: "#007AFF",
+              }}
+            />
+          </>
         )}
       </Stack.Navigator>
     </NavigationContainer>
