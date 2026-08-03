@@ -9,44 +9,46 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/useAuthStore";
 import { RaphaelTheme } from "../../constants/Theme";
+import apiClient from "../../api/apiClient";
 
 export const LoginScreen = () => {
   const { t } = useTranslation();
   const setAuth = useAuthStore((state) => state.setAuth);
 
-  // Estados del formulario
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleIdentify = async () => {
     if (!fullName || !phone) return;
-
     setLoading(true);
 
-    setTimeout(() => {
-      const mockCustomer = {
-        id: 1,
+    try {
+      const response = await apiClient.post("/Rider/auth/identify", {
         fullName: fullName,
-        address: "123 Medical Way",
-        city: "Miami",
-        state: "FL",
-        zip: "33101",
         phone: phone,
-        fundingSourceId: 10,
-        spaceTypeId: 1,
-        gender: "Not Specified",
-        created: new Date().toISOString(),
-        createdBy: "System",
-      };
+      });
 
-      setAuth(mockCustomer); // This saves the data to persistent storage and changes the navigation.
+      // El backend devuelve { customer, token, isSuccess }
+      if (response.data.isSuccess) {
+        const { customer, token } = response.data;
+        await setAuth(customer, token);
+      }
+    } catch (error: any) {
+      console.error("Login Error:", error);
+      const errorMsg =
+        error.response?.status === 401
+          ? t("auth.error_login")
+          : t("common.connection_error") || "Connection Error";
+      Alert.alert("Raphael", errorMsg);
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -56,18 +58,17 @@ export const LoginScreen = () => {
         style={styles.content}
       >
         <View style={styles.header}>
-          {/* The icon of the Angel Raphael will go here in the next iteration. */}
           <View style={styles.logoPlaceholder} />
-          <Text style={styles.title}>{t("welcome")}</Text>
-          <Text style={styles.subtitle}>{t("identify_title")}</Text>
+          <Text style={styles.title}>{t("auth.welcome")}</Text>
+          <Text style={styles.subtitle}>{t("auth.identify_title")}</Text>
         </View>
 
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t("full_name")}</Text>
+            <Text style={styles.label}>{t("auth.full_name")}</Text>
             <TextInput
               style={styles.input}
-              placeholder="Ex: John Doe"
+              placeholder={t("auth.placeholder_name")}
               value={fullName}
               onChangeText={setFullName}
               autoCapitalize="words"
@@ -75,7 +76,7 @@ export const LoginScreen = () => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>{t("phone")}</Text>
+            <Text style={styles.label}>{t("auth.phone")}</Text>
             <TextInput
               style={styles.input}
               placeholder="+1 (555) 000-0000"
@@ -96,7 +97,7 @@ export const LoginScreen = () => {
             {loading ? (
               <ActivityIndicator color={RaphaelTheme.colors.white} />
             ) : (
-              <Text style={styles.buttonText}>{t("identify_btn")}</Text>
+              <Text style={styles.buttonText}>{t("common.identify")}</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -106,19 +107,13 @@ export const LoginScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: RaphaelTheme.colors.background,
-  },
+  container: { flex: 1, backgroundColor: RaphaelTheme.colors.background },
   content: {
     flex: 1,
     padding: RaphaelTheme.spacing.l,
     justifyContent: "center",
   },
-  header: {
-    alignItems: "center",
-    marginBottom: RaphaelTheme.spacing.xl,
-  },
+  header: { alignItems: "center", marginBottom: RaphaelTheme.spacing.xl },
   logoPlaceholder: {
     width: 100,
     height: 100,
@@ -132,17 +127,9 @@ const styles = StyleSheet.create({
     color: RaphaelTheme.colors.primary,
     textAlign: "center",
   },
-  subtitle: {
-    fontSize: 16,
-    color: "#64748b",
-    marginTop: 8,
-  },
-  form: {
-    marginTop: RaphaelTheme.spacing.m,
-  },
-  inputGroup: {
-    marginBottom: RaphaelTheme.spacing.m,
-  },
+  subtitle: { fontSize: 16, color: "#64748b", marginTop: 8 },
+  form: { marginTop: RaphaelTheme.spacing.m },
+  inputGroup: { marginBottom: RaphaelTheme.spacing.m },
   label: {
     fontSize: 14,
     fontWeight: "600",
@@ -169,9 +156,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  buttonDisabled: {
-    backgroundColor: "#94a3b8",
-  },
+  buttonDisabled: { backgroundColor: "#94a3b8" },
   buttonText: {
     color: RaphaelTheme.colors.white,
     fontSize: 16,

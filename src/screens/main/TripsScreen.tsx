@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   FlatList,
   TouchableOpacity,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation } from "@react-navigation/native";
@@ -19,17 +20,16 @@ import {
   Circle,
 } from "lucide-react-native";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 
-// Dominio, Temas y Stores
+// Infraestructura
 import { RaphaelTheme } from "../../constants/Theme";
 import { Trip, Schedule, TripStatus } from "../../domain/types";
-import { MOCK_TRIPS, MOCK_SCHEDULES } from "../../services/mockData";
 import { StatusBadge } from "../../components/StatusBadge";
 import { useRatingStore } from "../../store/useRatingStore";
 import { RootStackParamList } from "../../navigation/types";
 import { RatingModal } from "../../components/RatingModal";
-
-import { useTranslation } from "react-i18next";
+import apiClient from "../../api/apiClient";
 
 export const TripsScreen = () => {
   const { t } = useTranslation();
@@ -37,13 +37,18 @@ export const TripsScreen = () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { ratings, addRating } = useRatingStore();
 
+  // --- ESTADOS DE DATOS REALES ---
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [history, setHistory] = useState<Trip[]>([]);
+  const [loading, setLoading] = useState(false);
+
   // --- ESTADOS DE VISTA ---
   const [viewMode, setViewMode] = useState<"daily" | "range">("daily");
   const [selectedTripForRating, setSelectedTripForRating] = useState<
     number | null
   >(null);
 
-  // --- ESTADOS DE FILTROS DE FECHA ---
+  // --- ESTADOS DE FILTROS ---
   const [singleDate, setSingleDate] = useState(new Date());
   const [dateFrom, setDateFrom] = useState(new Date());
   const [dateTo, setDateTo] = useState(new Date());
@@ -51,7 +56,47 @@ export const TripsScreen = () => {
     null,
   );
 
-  // --- LÓGICA DE SEGUIMIENTO (TRACKING) ---
+  // --- EFECTOS DE CARGA DE API ---
+  useEffect(() => {
+    if (viewMode === "daily") {
+      loadSchedules();
+    } else {
+      loadHistory();
+    }
+  }, [viewMode, singleDate, dateFrom, dateTo]);
+
+  const loadSchedules = async () => {
+    setLoading(true);
+    try {
+      const formattedDate = format(singleDate, "yyyy-MM-dd");
+      const response = await apiClient.get(
+        `/Rider/schedules?date=${formattedDate}`,
+      );
+      setSchedules(response.data);
+    } catch (error) {
+      console.error("Error cargando eventos", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadHistory = async () => {
+    setLoading(true);
+    try {
+      const start = format(dateFrom, "yyyy-MM-dd");
+      const end = format(dateTo, "yyyy-MM-dd");
+      const response = await apiClient.get(
+        `/Rider/history?start=${start}&end=${end}`,
+      );
+      setHistory(response.data);
+    } catch (error) {
+      console.error("Error cargando historial", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- LÓGICA DE TRACKING ---
   const canTrack = (status: string) => {
     return status === TripStatus.InProgress || status === TripStatus.Waiting;
   };
@@ -67,7 +112,6 @@ export const TripsScreen = () => {
   );
 
   // --- RENDERIZADORES ---
-
   const renderScheduleItem = ({ item }: { item: Schedule }) => {
     const isCompleted = item.performed;
     const isArrived = !!item.actualArriveTime && !item.performed;
@@ -83,7 +127,11 @@ export const TripsScreen = () => {
               <Circle size={14} color={color} />
             )}
             <Text style={[styles.statusLabel, { color }]}>
-              {isCompleted ? "Completed" : isArrived ? "Arrived" : "On Route"}
+              {isCompleted
+                ? t("trips.completed")
+                : isArrived
+                  ? t("trips.arrived")
+                  : t("trips.on_route")}
             </Text>
           </View>
           <Text style={styles.typeTag}>{item.eventType}</Text>
@@ -108,22 +156,22 @@ export const TripsScreen = () => {
       <View style={styles.tripCard}>
         <View style={styles.cardHeader}>
           <StatusBadge status={item.status} />
-          <Text style={styles.dateText}>{item.date}</Text>
+          <Text style={styles.dateText}>
+            {format(new Date(item.date), "dd/MM/yyyy")}
+          </Text>
         </View>
         <Text style={styles.routeText}>
-          <Text style={styles.bold}>Pickup:</Text> {item.pickupAddress}
+          <Text style={styles.bold}>{t("common.pickup")}:</Text>{" "}
+          {item.pickupAddress}
         </Text>
         <Text style={styles.routeText}>
-          <Text style={styles.bold}>Dropoff:</Text> {item.dropoffAddress}
+          <Text style={styles.bold}>{t("common.dropoff")}:</Text>{" "}
+          {item.dropoffAddress}
         </Text>
-
         <View style={styles.divider} />
-
-        {/* BOTÓN DE SEGUIMIENTO EN HISTORIAL (Si está activo) */}
         {canTrack(item.status) && (
           <View style={{ marginBottom: 10 }}>{renderTrackButton(item.id)}</View>
         )}
-
         <View style={styles.historyFooter}>
           {rating ? (
             <View style={styles.ratingInfo}>
@@ -142,7 +190,7 @@ export const TripsScreen = () => {
                 style={styles.rateBtn}
                 onPress={() => setSelectedTripForRating(item.id)}
               >
-                <Text style={styles.rateBtnText}>Calificar Viaje</Text>
+                <Text style={styles.rateBtnText}>{t("common.rate")}</Text>
               </TouchableOpacity>
             )
           )}
@@ -243,20 +291,32 @@ export const TripsScreen = () => {
         />
       )}
 
-      {/* 3. Listas */}
-      {viewMode === "daily" ? (
+      {/* 3. Listas Separadas para Evitar Errores de TypeScript */}
+      {loading ? (
+        <ActivityIndicator
+          size="large"
+          color={RaphaelTheme.colors.primary}
+          style={{ marginTop: 50 }}
+        />
+      ) : viewMode === "daily" ? (
         <FlatList
-          data={MOCK_SCHEDULES}
+          data={schedules}
           renderItem={renderScheduleItem}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContent}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>{t("trips.no_trips")}</Text>
+          }
         />
       ) : (
         <FlatList
-          data={MOCK_TRIPS}
+          data={history}
           renderItem={renderTripItem}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContent}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>{t("trips.no_trips")}</Text>
+          }
         />
       )}
 
@@ -396,7 +456,7 @@ const styles = StyleSheet.create({
   routeText: { fontSize: 13, color: RaphaelTheme.colors.text, marginBottom: 4 },
   bold: { fontWeight: "bold", color: "#1e293b" },
   divider: { height: 1, backgroundColor: "#F1F5F9", marginVertical: 10 },
-  historyFooter: { minHeight: 40, justifyContent: "center" }, // <--- PROPIEDAD AÑADIDA
+  historyFooter: { minHeight: 40, justifyContent: "center" },
   rateBtn: {
     padding: 10,
     borderRadius: 8,
@@ -418,4 +478,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginLeft: 5,
   },
+  emptyText: { textAlign: "center", marginTop: 50, color: "#94a3b8" },
 });
