@@ -73,8 +73,9 @@ export const TripsScreen = () => {
         `/Rider/schedules?date=${formattedDate}`,
       );
       setSchedules(response.data);
-    } catch (error) {
-      console.error("Error cargando eventos", error);
+    } catch (error: any) {
+      console.error("Error 500 Detalles:", error.response?.data);
+      console.error("Status:", error.response?.status);
     } finally {
       setLoading(false);
     }

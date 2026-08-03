@@ -31,11 +31,17 @@ export const useNotificationStore = create<NotificationState>((set) => ({
     },
   ],
   unreadCount: 2,
-  addNotification: (n) =>
+  addNotification: (n) => {
     set((state) => ({
       notifications: [n, ...state.notifications],
       unreadCount: state.unreadCount + 1,
-    })),
+    }));
+
+    // Si es una alerta crítica, mostramos un aviso emergente inmediato
+    if (n.level === "Alert") {
+      // Aquí se puede usar una librería de Toast o Alert.alert
+    }
+  },
   markAsRead: (id) =>
     set((state) => ({
       notifications: state.notifications.map((n) =>
