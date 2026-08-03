@@ -73,6 +73,8 @@ const resources = {
         title: "Notifications",
         empty: "No pending alerts",
         clear: "Clear all",
+        alert_urgent: "Urgent Alert",
+        view_trip: "View Trip",
       },
       settings: {
         profile: "Patient Profile",
@@ -177,6 +179,8 @@ const resources = {
         title: "Avisos",
         empty: "Sin avisos pendientes",
         clear: "Limpiar todo",
+        alert_urgent: "Aviso Urgente",
+        view_trip: "Ver Viaje",
       },
       settings: {
         profile: "Perfil Paciente",
