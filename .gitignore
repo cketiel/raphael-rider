@@ -43,3 +43,10 @@ yarn-error.*
 # ... otros archivos
 .env
 .env.local
+
+# Raphael Security - Credentials
+credentials.json
+google-services.json
+
+# iOS specific 
+GoogleService-Info.plist

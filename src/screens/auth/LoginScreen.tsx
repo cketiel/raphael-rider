@@ -15,6 +15,10 @@ import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/useAuthStore";
 import { RaphaelTheme } from "../../constants/Theme";
 import apiClient from "../../api/apiClient";
+import {
+  getExpoPushToken,
+  savePushTokenToBackend,
+} from "../../services/notificationService";
 
 export const LoginScreen = () => {
   const { t } = useTranslation();
@@ -37,7 +41,15 @@ export const LoginScreen = () => {
       // El backend devuelve { customer, token, isSuccess }
       if (response.data.isSuccess) {
         const { customer, token } = response.data;
+        // 1. Establecer la sesión (esto actualiza el token en SecureStore y Axios)
         await setAuth(customer, token);
+
+        // 2. Obtener y Guardar el Push Token inmediatamente
+        // Como ya llamamos a setAuth, el siguiente post ya llevará el Bearer token
+        const pushToken = await getExpoPushToken();
+        if (pushToken) {
+          await savePushTokenToBackend(pushToken);
+        }
       }
     } catch (error: any) {
       console.error("Login Error:", error);
