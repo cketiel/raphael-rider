@@ -46,6 +46,13 @@ const resources = {
         will_call_alert_title: "Will Call Activation",
         will_call_alert_msg: "Are you ready to be picked up now?",
         will_call_confirm: "Yes, I'm ready",
+        cancel_trip: "Cancel Trip",
+        no_active_trip: "No active trips for today",
+        confirm_cancel_title: "Cancel trip?",
+        confirm_cancel_msg:
+          "Are you sure you want to cancel today's transport?",
+        will_call_success: "Will Call activated. Dispatcher has been notified.",
+        cancel_success: "Trip cancelled successfully.",
       },
       trips: {
         daily: "Daily",
@@ -152,6 +159,14 @@ const resources = {
         will_call_alert_title: "Activación Will Call",
         will_call_alert_msg: "¿Está listo para que lo busquen?",
         will_call_confirm: "Sí, estoy listo",
+        cancel_trip: "Cancelar Viaje",
+        no_active_trip: "No tienes viajes activos para hoy",
+        confirm_cancel_title: "¿Cancelar viaje?",
+        confirm_cancel_msg:
+          "¿Estás seguro de que deseas cancelar tu transporte de hoy?",
+        will_call_success:
+          "Will Call activado. El despachador ha sido notificado.",
+        cancel_success: "Viaje cancelado correctamente.",
       },
       trips: {
         daily: "Diario",
