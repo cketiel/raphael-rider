@@ -1,3 +1,27 @@
+export interface NotificationRecipientDto {
+  id: string; // GUID: The unique ID for this recipient record
+  recipientId: string; // GUID: The User/Customer ID
+  recipientType: string;
+  status: string;
+  deliveredAtUtc?: string;
+  viewedAtUtc?: string;
+  acknowledgedAtUtc?: string;
+}
+
+export interface NotificationDto {
+  id: string; // GUID
+  businessEventCode: string;
+  priority: string;
+  severity: string;
+  type: string;
+  status: string;
+  title: string;
+  message: string;
+  createdAtUtc: string;
+  expiresAtUtc?: string;
+  recipients: NotificationRecipientDto[];
+}
+
 export enum NotificationLevel {
   Info = "Info",
   Warning = "Warning",

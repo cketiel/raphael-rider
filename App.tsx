@@ -11,12 +11,16 @@ import {
   getExpoPushToken,
   savePushTokenToBackend,
 } from "./src/services/notificationService";
+import { useNotificationStore } from "./src/store/useNotificationStore";
 
 export default function App() {
   // Inicializa SignalR
   useSignalR();
 
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const fetchNotifications = useNotificationStore(
+    (state) => state.fetchNotifications,
+  );
 
   // Referencias para los suscriptores
   const notificationListener =
@@ -27,6 +31,7 @@ export default function App() {
     // 1. Lógica de registro condicional
     const setupNotifications = async () => {
       if (isAuthenticated) {
+        await fetchNotifications();
         const token = await getExpoPushToken();
         if (token) {
           await savePushTokenToBackend(token);
@@ -40,6 +45,7 @@ export default function App() {
     notificationListener.current =
       Notifications.addNotificationReceivedListener((notification) => {
         console.log("Push recibida:", notification);
+        fetchNotifications();
       });
 
     responseListener.current =
