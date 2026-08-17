@@ -3,7 +3,7 @@ import { Alert, Vibration, Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import Constants from "expo-constants";
 import { useNotificationStore } from "../store/useNotificationStore";
-import { NotificationLevel } from "../domain/types";
+import { NotificationLevel, NotificationDto } from "../domain/types";
 import i18n from "../i18n";
 
 class SignalRService {
@@ -51,11 +51,41 @@ class SignalRService {
       .build();
 
     // LISTENER: Receive Notifications from the Backend (NotificationDto)
-    this.connection.on("ReceiveNotification", (notification: any) => {
+    this.connection.on("ReceiveNotification", async (notification: any) => {
       console.log("New notification received via SignalR");
 
+      // We create a "Transient Recipient" to avoid crashes and enable local tracking
+      const transientId = `transient-${notification.Id || notification.id || Math.random()}`;
+
+      const mappedNotif: any = {
+        id: notification.Id || notification.id || transientId,
+        businessEventCode:
+          notification.BusinessEventCode ||
+          notification.businessEventCode ||
+          "EXTERNAL",
+        title: notification.Title || notification.title || "Raphael Update",
+        message: notification.Message || notification.message || "",
+        severity:
+          notification.Severity || notification.severity || "Information",
+        status: notification.Status || notification.status || "Delivered",
+        createdAtUtc:
+          notification.CreatedAtUtc ||
+          notification.createdAtUtc ||
+          new Date().toISOString(),
+        recipients: [
+          {
+            id: transientId,
+            recipientId: "current-rider",
+            status: "Delivered",
+            recipientType: "Rider",
+          },
+        ],
+      };
+
+      useNotificationStore.getState().addIncomingNotification(mappedNotif);
+
       // Refresh the store from the database to include the generated GUIDs
-      useNotificationStore.getState().fetchNotifications();
+      await useNotificationStore.getState().fetchNotifications();
 
       // Trigger the native Alert for critical messages as we did before
       if (
