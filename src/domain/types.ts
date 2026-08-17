@@ -111,7 +111,7 @@ export interface Schedule {
   id: number;
   tripId?: number;
   vehicleRouteId: number;
-  eventType: string; // ScheduleEventType
+  eventType: number; // ScheduleEventType
   sequence?: number;
   name: string;
   address: string;
@@ -122,11 +122,12 @@ export interface Schedule {
   fundingSourceName?: string;
   authNo?: string;
   spaceTypeName?: string;
-  scheduledPickupTime?: string;
-  scheduledApptTime?: string;
+  pickup: string; //scheduledPickupTime?: string;
+  appt: string; //scheduledApptTime?: string;
   actualArriveTime?: string;
   actualPerformTime?: string;
   performed: boolean;
+  eta: string;
 }
 
 export interface GPS {

@@ -22,7 +22,7 @@ import {
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 
-// Infraestructura
+// Infrastructure
 import { RaphaelTheme } from "../../constants/Theme";
 import { Trip, Schedule, TripStatus } from "../../domain/types";
 import { StatusBadge } from "../../components/StatusBadge";
@@ -37,18 +37,18 @@ export const TripsScreen = () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { ratings, addRating } = useRatingStore();
 
-  // --- ESTADOS DE DATOS REALES ---
+  // --- REAL DATA STATES ---
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [history, setHistory] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // --- ESTADOS DE VISTA ---
+  // --- VIEW STATES ---
   const [viewMode, setViewMode] = useState<"daily" | "range">("daily");
   const [selectedTripForRating, setSelectedTripForRating] = useState<
     number | null
   >(null);
 
-  // --- ESTADOS DE FILTROS ---
+  // --- FILTER STATES ---
   const [singleDate, setSingleDate] = useState(new Date());
   const [dateFrom, setDateFrom] = useState(new Date());
   const [dateTo, setDateTo] = useState(new Date());
@@ -56,7 +56,7 @@ export const TripsScreen = () => {
     null,
   );
 
-  // --- EFECTOS DE CARGA DE API ---
+  // --- API LOADING EFFECTS ---
   useEffect(() => {
     if (viewMode === "daily") {
       loadSchedules();
@@ -74,7 +74,7 @@ export const TripsScreen = () => {
       );
       setSchedules(response.data);
     } catch (error: any) {
-      console.error("Error 500 Detalles:", error.response?.data);
+      console.error("Error 500 Details:", error.response?.data);
       console.error("Status:", error.response?.status);
     } finally {
       setLoading(false);
@@ -91,13 +91,13 @@ export const TripsScreen = () => {
       );
       setHistory(response.data);
     } catch (error) {
-      console.error("Error cargando historial", error);
+      console.error("Error loading history", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // --- LÓGICA DE TRACKING ---
+  // --- TRACKING LOGIC ---
   const canTrack = (status: string) => {
     return status === TripStatus.InProgress || status === TripStatus.Waiting;
   };
@@ -112,11 +112,23 @@ export const TripsScreen = () => {
     </TouchableOpacity>
   );
 
-  // --- RENDERIZADORES ---
+  // --- RENDERERS ---
+
+  /**
+   * Refactored Schedule Item for Daily Tab
+   */
   const renderScheduleItem = ({ item }: { item: Schedule }) => {
     const isCompleted = item.performed;
     const isArrived = !!item.actualArriveTime && !item.performed;
     const color = isCompleted ? "#94a3b8" : isArrived ? "#EAB308" : "#22C55E";
+
+    // Format ETA (assuming TimeSpan string "HH:mm:ss")
+    const formattedEta = item.eta ? item.eta.substring(0, 5) : "--:--";
+    var scheduledTime = item.eventType === 1 ? item.pickup : item.appt;
+
+    const formattedTime = scheduledTime
+      ? scheduledTime.substring(0, 5)
+      : "--:--";
 
     return (
       <View style={[styles.eventCard, { borderLeftColor: color }]}>
@@ -135,16 +147,24 @@ export const TripsScreen = () => {
                   : t("trips.on_route")}
             </Text>
           </View>
-          <Text style={styles.typeTag}>{item.eventType}</Text>
-        </View>
-        <Text style={styles.locationName}>{item.name}</Text>
-        <Text style={styles.addressText}>{item.address}</Text>
-        <View style={styles.footerRow}>
-          <Text style={styles.timeValue}>
-            {item.eventType === "Pickup"
-              ? item.scheduledPickupTime
-              : item.scheduledApptTime}
+          {/* Requirement: item.eventType == 1 ? Pickup : Dropoff */}
+          <Text style={styles.typeTag}>
+            {item.eventType === 1 ? "Pickup" : "Dropoff"}
           </Text>
+          <Text>{formattedTime}</Text>
+        </View>
+
+        {/* Requirement: Show address with large bold style, remove name */}
+        <Text style={styles.locationName}>{item.address}</Text>
+
+        <View style={styles.footerRow}>
+          {/* Requirement: ETA on the bottom left aligned with the track button */}
+          <View style={styles.etaContainer}>
+            <Text style={styles.etaLabel}>ETA </Text>
+            <Text style={styles.timeValue}>{formattedEta}</Text>
+          </View>
+
+          {/* Live Tracking on the bottom right */}
           {!isCompleted && item.tripId && renderTrackButton(item.tripId)}
         </View>
       </View>
@@ -211,7 +231,7 @@ export const TripsScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* 1. Selector de Modo */}
+      {/* 1. Mode Selector */}
       <View style={styles.tabBar}>
         <TouchableOpacity
           style={[styles.tab, viewMode === "daily" && styles.activeTab]}
@@ -241,7 +261,7 @@ export const TripsScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* 2. Filtros */}
+      {/* 2. Filters */}
       <View style={styles.filterPanel}>
         {viewMode === "daily" ? (
           <TouchableOpacity
@@ -292,7 +312,7 @@ export const TripsScreen = () => {
         />
       )}
 
-      {/* 3. Listas Separadas para Evitar Errores de TypeScript */}
+      {/* 3. Real Data Lists */}
       {loading ? (
         <ActivityIndicator
           size="large"
@@ -414,18 +434,27 @@ const styles = StyleSheet.create({
     padding: 4,
     borderRadius: 4,
     color: "#64748b",
+    fontWeight: "bold",
   },
   locationName: {
     fontSize: 16,
     fontWeight: "bold",
     color: RaphaelTheme.colors.text,
   },
-  addressText: { fontSize: 13, color: "#64748b", marginTop: 4 },
   footerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 15,
+  },
+  etaContainer: {
+    flexDirection: "row",
+    alignItems: "baseline",
+  },
+  etaLabel: {
+    fontSize: 12,
+    color: "#94a3b8",
+    fontWeight: "600",
   },
   timeValue: {
     fontSize: 16,
