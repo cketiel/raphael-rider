@@ -20,10 +20,13 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.raphael.rider",
+	  infoPlist: {
+		  "ITSAppUsesNonExemptEncryption": false
+		},
     },
     android: {
       package: "com.raphael.rider",
-	  googleServicesFile: "./google-services.json", 
+	  googleServicesFile: process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
       config: {
         googleMaps: {        
           apiKey: process.env.GOOGLE_MAPS_API_KEY,
