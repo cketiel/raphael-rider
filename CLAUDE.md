@@ -35,6 +35,21 @@ en silencio en producción. Aprovéchalo: tipa, no uses `any`.
 ## No leer
 `node_modules/`, `.expo/`, `package-lock.json`, `assets/`, `google-services.json`, `credentials.json`
 
+## Versionado y canal de testers internos
+
+**No está en producción.** Versión `0.x` mientras siga siendo pre-release — `1.0.0` habría afirmado
+estabilidad que aún no existe.
+
+- Versión: `version` en `app.config.js` y `package.json`, **siempre iguales**. Hoy: `0.1.0`.
+  Todavía no se muestra en pantalla (pendiente para cuando se libere).
+- **Canal de testers = perfil `preview` de `eas.json`** (`android: apk`, `ios: internal`):
+  `eas build --profile preview`
+- Cada build para testers se taguea `v0.1.0-preview.N` y se publica como **pre-release** en GitHub
+  con el APK/IPA adjunto. Así los testers dejan de recibir binarios anónimos.
+- `appVersionSource: "remote"` → el build number lo gestiona EAS. No tocarlo.
+- Doctrina completa: `../_meta/GIT_WORKFLOW.md`
+
 ## Comandos
 - Dev: `npm start` · Android: `npm run android` · iOS: `npm run ios` · Web: `npm run web`
+- Build testers: `eas build --profile preview`
 - Test: no hay suite configurada.
