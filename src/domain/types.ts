@@ -47,6 +47,11 @@ export enum TripStatus {
   Assigned = "Assigned",
   Accepted = "Accepted",
   Scheduled = "Scheduled",
+  /** The driver took the trip and is on the way to the pickup address. */
+  Started = "Started",
+  /** The driver reached the pickup address and is waiting for the patient. */
+  Arrived = "Arrived",
+  /** Will Call activated: the patient is ready and waiting for a vehicle. */
   Waiting = "Waiting",
   Late = "Late",
   InProgress = "InProgress",
@@ -155,6 +160,8 @@ export const TripStatusColors: Record<string, string> = {
   [TripStatus.Assigned]: "#9E9E9E", // Gray
   [TripStatus.Accepted]: "#00BCD4", // Cyan
   [TripStatus.Scheduled]: "#2196F3", // Blue
+  [TripStatus.Started]: "#7C3AED", // Violet
+  [TripStatus.Arrived]: "#0EA5E9", // Sky
   [TripStatus.Waiting]: "#FFEB3B", // Yellow (Dark text)
   [TripStatus.Late]: "#FF9800", // Orange
   [TripStatus.InProgress]: "#3F51B5", // Indigo
