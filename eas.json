@@ -6,18 +6,27 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "API_URL": "https://app-raphael-dev-scus.azurewebsites.net/api"
+      }
     },
     "preview": {
       "android": {
         "buildType": "apk"
       },
-	  "ios": {
+      "ios": {
         "distribution": "internal"
+      },
+      "env": {
+        "API_URL": "https://app-raphael-dev-scus.azurewebsites.net/api"
       }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "API_URL": "https://api.raphaeldh.com/api"
+      }
     }
   },
   "submit": {

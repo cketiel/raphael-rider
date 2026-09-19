@@ -9,9 +9,19 @@ import i18n from "../i18n";
 class SignalRService {
   private connection: signalR.HubConnection | null = null;
 
-  // Get the base URL from app.config.js and strip the /api path for the hubs
+  // Get the base URL from app.config.js and strip the /api path for the hubs.
+  //
+  // ⚠️ Anchored to the END of the string. It used to be .replace("/api", ""), which takes the
+  // FIRST match anywhere — and the production host contains "api":
+  //
+  //   "https://api.raphaeldh.com/api".replace("/api", "")
+  //     -> "https:/.raphaeldh.com/api"
+  //
+  // Measured, not guessed. It happened to work against the old rtempurl host and against the
+  // Azure DEV hostname, so nothing would have shown up until the day this app was pointed at
+  // api.raphaeldh.com, when the hub would simply never connect.
   private apiUrl =
-    Constants.expoConfig?.extra?.apiUrl?.replace("/api", "") || "";
+    Constants.expoConfig?.extra?.apiUrl?.replace(/\/api\/?$/, "") || "";
 
   /**
    * Initiate the connection with Raphael's Notification Hub.
@@ -36,7 +46,12 @@ class SignalRService {
 
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl(hubUrl, {
-        accessTokenFactory: async () => token,
+        // ⚠️ Read fresh on every call, not captured. SignalR asks again on each automatic
+        // reconnect, and the token it captured at connect time may have been renewed since —
+        // a connection that dropped would then retry forever with a token the server has
+        // already stopped accepting.
+        accessTokenFactory: async () =>
+          (await SecureStore.getItemAsync("userToken")) ?? "",
         transport:
           signalR.HttpTransportType.WebSockets |
           signalR.HttpTransportType.LongPolling,
