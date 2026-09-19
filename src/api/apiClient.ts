@@ -27,22 +27,68 @@ const renewalClient = axios.create({ baseURL, timeout: 30000 });
  * has just replaced, which is its definition of a stolen credential. It answers by ending the
  * session, which would sign a patient out for having several things on screen at once.
  */
-let renewal: Promise<string | null> | null = null;
+let renewal: Promise<RenewalOutcome> | null = null;
 
-async function renewSession(): Promise<string | null> {
+/**
+ * What came of trying to renew. Three outcomes and not `string | null`, because two of them
+ * used to be the same value and the difference is a patient's session.
+ *
+ * ⚠️ "The server said no" and "I could not reach the server" both returned null, and the
+ * interceptor called logout() on null. So a 409, a 500 or a lost signal signed the patient
+ * out. The comment in the catch below already said that must not happen, and the code under
+ * it did it anyway. Found on the Driver on 2026-09-19, where it threw drivers back to the
+ * sign-in screen the moment they signed in against a server that was still waking up.
+ */
+type RenewalOutcome =
+  | { status: "renewed"; token: string }
+  | { status: "session-over" }
+  | { status: "unavailable" };
+
+/**
+ * What a failed renewal means for the session.
+ *
+ * ⚠️ **409 is not a failure.** The backend answers `rotated_recently` with Conflict precisely
+ * so a client does not send the user to the sign-in screen — `AuthController.Refresh` says so
+ * in as many words: "401 tells a client to send the user back to the login screen, and this is
+ * the one failure where it must not". It means another request renewed with this same refresh
+ * token seconds ago, so the answer is to use whatever is stored now.
+ *
+ * ⚠️ **Only an answer about the credential ends a session.** 401 and 403 are the server
+ * refusing the refresh token. A 500 while it is still starting, a 429 from the rate limiter, a
+ * timeout, no signal at all — none of those say anything about the session.
+ */
+async function classifyFailure(status: number | undefined): Promise<RenewalOutcome> {
+  if (status === 409) {
+    const stored = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+
+    return stored
+      ? { status: "renewed", token: stored }
+      : { status: "unavailable" };
+  }
+
+  if (status === 401 || status === 403) {
+    return { status: "session-over" };
+  }
+
+  return { status: "unavailable" };
+}
+
+async function renewSession(): Promise<RenewalOutcome> {
   if (!renewal) {
-    renewal = (async () => {
+    renewal = (async (): Promise<RenewalOutcome> => {
       try {
         const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
 
         if (!refreshToken) {
-          return null;
+          // Nothing to renew with. Signing in again is the only way on from here.
+          return { status: "session-over" };
         }
 
         const { data } = await renewalClient.post("/Auth/refresh", { refreshToken });
 
         if (!data?.token) {
-          return null;
+          // A 200 with nothing usable in it is the server misbehaving, not the session ending.
+          return { status: "unavailable" };
         }
 
         await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, data.token);
@@ -53,13 +99,16 @@ async function renewSession(): Promise<string | null> {
           await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, data.refreshToken);
         }
 
-        return data.token as string;
-      } catch {
-        // ⚠️ Includes "there was no network". That is not an expired session and must not sign
-        // anybody out — a patient on a phone loses signal far more often than a token is
-        // stolen. The caller gets null, the original 401 surfaces, and the next request tries
-        // again once there is a connection.
-        return null;
+        return { status: "renewed", token: data.token as string };
+      } catch (error) {
+        // ⚠️ Includes "there was no network", which axios reports with no response at all.
+        // That is not an expired session and must not sign anybody out — a patient on a phone
+        // loses signal far more often than a token is stolen. Everything that is not the
+        // server refusing the credential leaves the session alone: the original 401 surfaces
+        // and the next request tries again.
+        const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+
+        return classifyFailure(status);
       } finally {
         renewal = null;
       }
@@ -101,22 +150,26 @@ apiClient.interceptors.response.use(
       // Once, never in a loop: a 401 that survives a fresh token is not about the token.
       original._retried = true;
 
-      const token = await renewSession();
+      const outcome = await renewSession();
 
-      if (token) {
+      if (outcome.status === "renewed") {
         original.headers = original.headers ?? {};
-        original.headers.Authorization = `Bearer ${token}`;
+        original.headers.Authorization = `Bearer ${outcome.token}`;
         return apiClient(original);
       }
 
-      // Only now is the session really over. Until this change the 401 was written to the
-      // console and nothing else, so a patient whose token had expired sat looking at a screen
-      // that failed silently and never said why.
+      // ⚠️ Only "session-over" ends the session. "unavailable" means nothing was decided —
+      // no signal, a timeout, a 409 because another request renewed a second ago, a 500 from
+      // a server still starting — and the 401 simply surfaces, which the screen can retry.
+      // Logging out on anything that was not a renewal is what signed patients out for a
+      // server hiccup they never saw.
       //
       // Imported here rather than at the top so this module never depends on the store at load
       // time.
-      const { useAuthStore } = await import("../store/useAuthStore");
-      await useAuthStore.getState().logout();
+      if (outcome.status === "session-over") {
+        const { useAuthStore } = await import("../store/useAuthStore");
+        await useAuthStore.getState().logout();
+      }
     }
 
     return Promise.reject(error);
