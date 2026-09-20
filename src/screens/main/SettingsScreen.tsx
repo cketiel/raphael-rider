@@ -22,12 +22,18 @@ import {
   ChevronRight,
   Lock,
 } from "lucide-react-native";
+import Constants from "expo-constants";
 import i18n from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 export const SettingsScreen = () => {
   const { t } = useTranslation();
   const { customer, logout } = useAuthStore();
+
+  // Nothing is shown in production on purpose: a banner that is always there stops being read,
+  // and then the one build left pointing at DEV looks exactly like the rest.
+  const apiUrl: string = Constants.expoConfig?.extra?.apiUrl ?? "";
+  const isProduction = apiUrl.includes("api.raphaeldh.com");
   const { language, setLanguage, preferredMapApp, setPreferredMapApp } =
     useSettingsStore();
 
@@ -149,6 +155,23 @@ export const SettingsScreen = () => {
         <Text style={styles.logoutText}>{t("settings.logout")}</Text>
       </TouchableOpacity>
 
+      {/*
+        Build identity. Until now this app showed its version nowhere at all, so a tester
+        reporting a problem could not say which build they were on and nobody could ask.
+        It is also what the app sends the server in X-Client-Version.
+
+        The server address is shown only when it is not production: a patient should never see
+        it, and somebody holding a test build should never have to guess.
+      */}
+      <View style={styles.aboutBlock}>
+        <Text style={styles.aboutText}>
+          Raphael Rider {Constants.expoConfig?.version ?? "?"}
+        </Text>
+        {!isProduction && (
+          <Text style={styles.aboutEnvironment}>{apiUrl}</Text>
+        )}
+      </View>
+
       {/* Modal de PIN */}
       <Modal visible={pinModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
@@ -268,6 +291,14 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: 10,
     fontSize: 16,
+  },
+  aboutBlock: { alignItems: "center", marginBottom: 32 },
+  aboutText: { fontSize: 12, color: "#94a3b8" },
+  aboutEnvironment: {
+    fontSize: 12,
+    color: RaphaelTheme.colors.error,
+    fontWeight: "bold",
+    marginTop: 2,
   },
   // Modal Styles
   modalOverlay: {

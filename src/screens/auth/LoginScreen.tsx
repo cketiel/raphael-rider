@@ -40,9 +40,11 @@ export const LoginScreen = () => {
 
       // El backend devuelve { customer, token, isSuccess }
       if (response.data.isSuccess) {
-        const { customer, token } = response.data;
+        const { customer, token, refreshToken } = response.data;
         // 1. Establecer la sesión (esto actualiza el token en SecureStore y Axios)
-        await setAuth(customer, token);
+        // El refresh token es opcional a propósito: contra un servidor anterior llega
+        // undefined y la app se comporta exactamente como antes.
+        await setAuth(customer, token, refreshToken);
 
         // 2. Obtener y Guardar el Push Token inmediatamente
         // Como ya llamamos a setAuth, el siguiente post ya llevará el Bearer token
